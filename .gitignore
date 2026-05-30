@@ -20,3 +20,9 @@ Thumbs.db
 
 # Keep the logs folder but ignore local build.log at root
 build.log
+
+# Buildozer / Kivy
+.buildozer/
+bin/
+__pycache__/
+*.pyc
