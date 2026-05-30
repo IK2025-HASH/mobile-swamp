@@ -11,10 +11,14 @@ jobs:
   build:
     name: Build debug APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -35,21 +39,6 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace 2>&1 | tee build.log
 
-      - name: Save build log to repo logs folder
-        if: always()
-        run: |
-          mkdir -p logs
-          cp build.log logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log
-
-      - name: Commit build log
-        if: always()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add logs/
-          git diff --cached --quiet || git commit -m "ci: save build log [skip ci]"
-          git push
-
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
@@ -65,3 +54,14 @@ jobs:
           name: build-log
           path: build.log
           retention-days: 14
+
+      - name: Save build log to repo
+        if: always()
+        run: |
+          mkdir -p logs
+          cp build.log logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add logs/
+          git diff --cached --quiet || git commit -m "ci: save build log [skip ci]"
+          git push
