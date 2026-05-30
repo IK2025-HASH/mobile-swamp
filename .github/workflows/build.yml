@@ -37,7 +37,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace 2>&1 | tee build.log
+        run: set -o pipefail; ./gradlew assembleDebug --stacktrace 2>&1 | tee build.log
 
       - name: Upload APK artifact
         if: success()
