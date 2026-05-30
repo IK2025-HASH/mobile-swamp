@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keys
+*.jks
+*.keystore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep the logs folder but ignore local build.log at root
+build.log

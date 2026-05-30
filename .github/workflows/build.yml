@@ -23,15 +23,45 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK platform and build tools
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace 2>&1 | tee build.log
+
+      - name: Save build log to repo logs folder
+        if: always()
+        run: |
+          mkdir -p logs
+          cp build.log logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log
+
+      - name: Commit build log
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add logs/
+          git diff --cached --quiet || git commit -m "ci: save build log [skip ci]"
+          git push
 
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      - name: Upload build log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
           retention-days: 14
