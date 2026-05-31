@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Kivy APK (Docker/Buildozer)
+    name: Build Kivy APK (Buildozer)
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -24,38 +24,29 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: buildozer-docker-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-docker-${{ runner.os }}-
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-${{ runner.os }}-
 
-      - name: Build APK via kivy/buildozer Docker image
-        run: |
-          docker run --rm \
-            -v "$(pwd)":/home/user/hostcwd \
-            kivy/buildozer:stable \
-            android debug 2>&1 | tee build.log
-          test ${PIPESTATUS[0]} -eq 0
+      - name: Build APK with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          command: buildozer android debug
+          workdir: .
+          buildozer-version: stable
 
       - name: Upload APK artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: bin/*.apk
+          path: ${{ steps.buildozer.outputs.filename }}
           retention-days: 14
 
-      - name: Upload build log artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          retention-days: 14
-
-      - name: Save build log to repo
+      - name: Copy and save build log
         if: always()
         run: |
           mkdir -p logs
-          cp build.log logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log
+          [ -f build.log ] && cp build.log logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log || echo "no build.log" > logs/build-$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::8}.log
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add logs/
