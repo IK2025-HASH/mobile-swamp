@@ -1,0 +1,4 @@
+Unable to find image 'kivy/buildozer:stable' locally
+docker: Error response from daemon: manifest for kivy/buildozer:stable not found: manifest unknown: manifest unknown
+
+Run 'docker run --help' for more information
