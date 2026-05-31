@@ -31,8 +31,9 @@ jobs:
         run: |
           docker run --rm \
             -v "$(pwd)":/home/user/hostcwd \
-            kivy/buildozer:latest \
+            kivy/buildozer:stable \
             android debug 2>&1 | tee build.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Upload APK artifact
         if: success()
